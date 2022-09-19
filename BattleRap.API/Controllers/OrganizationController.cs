@@ -20,6 +20,8 @@ public class OrganizationController : ControllerBase, IBaseController<Organizati
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<Organization>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<Organization>>> Get([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         if (!Paging.IsValid(page, pageSize, out ActionResult? result))
@@ -34,6 +36,8 @@ public class OrganizationController : ControllerBase, IBaseController<Organizati
     }
 
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(Organization), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Organization>> Get([FromRoute] int id)
     {
         var organization = await _organizationRepository.GetByIdAsync(id);
@@ -46,6 +50,7 @@ public class OrganizationController : ControllerBase, IBaseController<Organizati
 
     [HttpPost]
     [Authorize]
+    [ProducesResponseType(typeof(Organization), StatusCodes.Status201Created)]
     public async Task<ActionResult<Organization>> Post([FromBody] OrganizationDTO organizationDTO)
     {
         var organization = organizationDTO.ToOrganization();
@@ -61,6 +66,8 @@ public class OrganizationController : ControllerBase, IBaseController<Organizati
 
     [HttpPut("{id}")]
     [Authorize]
+    [ProducesResponseType(typeof(Organization), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Organization), StatusCodes.Status201Created)]
     public async Task<ActionResult<Organization>> Put([FromRoute] int id, [FromBody] OrganizationDTO organizationDTO)
     {
         var organization = await _organizationRepository.GetByIdAsync(id);
@@ -76,6 +83,8 @@ public class OrganizationController : ControllerBase, IBaseController<Organizati
 
     [HttpPatch("{id}")]
     [Authorize]
+    [ProducesResponseType(typeof(Organization), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Organization>> Patch([FromRoute] int id, [FromBody] OrganizationPatchDTO organizationPatchDTO)
     {
         var organization = await _organizationRepository.GetByIdAsync(id);
@@ -90,9 +99,13 @@ public class OrganizationController : ControllerBase, IBaseController<Organizati
 
     [HttpDelete("{id}")]
     [Authorize]
+    [ProducesResponseType(typeof(Organization), StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Organization>> Delete([FromRoute] int id)
     {
-        if (_organizationRepository.GetByIdAsync(id) == null)
+        var organization = await _organizationRepository.GetByIdAsync(id);
+
+        if (organization == null)
             return NotFound($"A roda cultural de ID '{id}' não foi encontrada.");
 
         await _organizationRepository.RemoveAsync(id);

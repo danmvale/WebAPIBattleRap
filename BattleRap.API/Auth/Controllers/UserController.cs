@@ -9,7 +9,6 @@ using System.Text;
 
 namespace BattleRap.API.Auth.Controllers
 {
-    [Route("[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -25,14 +24,18 @@ namespace BattleRap.API.Auth.Controllers
         }
 
         [HttpPost]
+        [Route("[controller]")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status201Created)]
         public async Task<ActionResult> Post(UserDTO userDTO)
         {
             userDTO.Password = EncryptPassword(userDTO.Password);
             await _userRepository.AddAsync(userDTO.ToUser());
-            return Ok();
+            return Created("", "Usuário cadastrado com sucesso!");
         }
 
         [HttpPost("login")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<string>> Login([FromBody] UserLoginDTO userLoginDTO)
         {
             var user = await _userRepository.GetAsync(userLoginDTO.Username, EncryptPassword(userLoginDTO.Password));
@@ -40,7 +43,7 @@ namespace BattleRap.API.Auth.Controllers
             if (user == null)
                 return NotFound("Usuário ou senha inválidos");
 
-            return _generateToken.GenerateJwt(user);
+            return Ok(_generateToken.GenerateJwt(user));
         }
 
         private string EncryptPassword(string password) => Encrypt(Encrypt(password) + Encrypt(_configuration.Secret));
